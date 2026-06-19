@@ -1,0 +1,13 @@
+{
+  "name": "my-bookshelf",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "busboy": "^1.6.0"
+  }
+}
