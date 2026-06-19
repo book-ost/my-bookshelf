@@ -1,9 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我的书架</title>
+<title>My Bookshelf</title>
+
+
 <style>
 :root{--bg:#faf8f5;--bg-card:#fff;--text:#1a1a1a;--text-2:#5a5a5a;--text-3:#9e9e9e;--border:#e8e5e0;--accent:#b8451a;--accent-soft:#fdf2ed;--shadow-sm:0 1px 2px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.06);--shadow-lg:0 12px 40px rgba(0,0,0,.1);--r-sm:6px;--r-md:10px;--r-lg:16px;--font-serif:Georgia,"KaiTi","STKaiti","FangSong","STFangsong","SimSun",serif;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","SimHei",sans-serif;--font-display:Georgia,"KaiTi","STKaiti","FangSong",serif}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -164,239 +166,130 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);line-he
 .form-modal{padding:24px}
 }
 </style>
+
+
 </head>
 <body>
-<header class="header"><div class="header-inner"><div class="logo"><span class="logo-icon">&#x1f4da;</span>My Bookshelf</div><div class="header-right"><span class="book-count" id="book-count"></span><div class="view-toggle"><button class="view-btn active" data-view="shelf" id="btn-shelf">&#x1f4d6; Bookshelf</button><button class="view-btn" data-view="timeline" id="btn-timeline">&#x23f3; Timeline</button></div><button class="admin-btn" id="admin-btn" onclick="toggleAdmin()" title="Manage">&#x2699;</button></div></div></header>
+<header class="header"><div class="header-inner"><div class="logo"><span class="logo-icon">&#x1f4da;</span>My Bookshelf</div><div class="header-right"><span class="book-count" id="book-count"></span><div class="view-toggle"><button class="view-btn active" data-view="shelf">&#x1f4d6; Bookshelf</button><button class="view-btn" data-view="timeline">&#x23f3; Timeline</button></div><a href="admin.html" style="width:36px;height:36px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-2);transition:.2s;text-decoration:none">&#x2699;</a></div></div></header>
 <main class="main">
-<div class="shelf-container active" id="shelf-view"></div>
+<div class="shelf-container active" id="shelf-view"><div class="empty-state"><p>Loading books...</p></div></div>
 <div class="timeline-container" id="timeline-view"></div>
-<div class="admin-panel" id="admin-panel">
-<h2>&#x1f4cb; Manage Books</h2>
-<div class="admin-toolbar">
-<input type="text" id="admin-search" placeholder="Search title or author...">
-<button class="btn btn-primary" onclick="openAddForm()">+ Add Book</button>
-<button class="btn" onclick="resetData()">&#x21ba; Reset</button> <button class="btn btn-danger" onclick="clearCovers()">Clear Covers</button>
-<span style="font-size:13px;color:var(--text-3);margin-left:8px" id="admin-count"></span>
-</div>
-<div class="admin-table-wrap">
-<table class="admin-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Date</th><th>Progress</th><th style="width:100px">Actions</th></tr></thead><tbody id="admin-tbody"></tbody></table>
-</div>
-</div>
 </main>
 <div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal"></div></div>
-<div class="form-overlay" id="form-overlay"><div class="form-modal" id="form-modal"></div></div>
+<script>const SUPABASE_URL = 'https://aljfcjwqsmmkqpbpledp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsamZjandxc21ta3FwYnBsZWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjE5MDQsImV4cCI6MjA5NzE5NzkwNH0.r8xxEw7MMWYwnciuQ8cjbCGvciz34JYMHEK1HIoSbe8';
+const API_HEADERS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
 
-<script>const DEFAULT_BOOKS=[{"year":"2021-04","summary":"一位伦敦证券经纪人突然抛弃妻儿，奔赴南太平洋小岛追寻绘画理想。艺术与世俗的撕扯，理想与现实的选择。","id":1,"color":"#2d1f13","progress":100,"author":"威廉·萨默赛特·毛姆","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"月亮与六便士"},{"year":"2021-05","summary":"3月13日13时13分13秒，东京突现“P-13现象”，仅13人幸存于空城。在绝望与秩序崩溃中，他们艰难求生。","id":2,"color":"#1a3038","progress":100,"author":"东野圭吾","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"悖论13"},{"year":"2021-06","summary":"朦胧诗派代表顾城的诗歌集，收录《一代人》《远和近》等名篇，以童话般的纯真与梦幻书写“黑夜给了我黑色的眼睛”。","id":3,"color":"#4a2c1a","progress":100,"author":"顾城","nationality":"","reflection":"","keywords":[],"cover":"","title":"顾城诗集"},{"year":"2021-07","summary":"讲述剑桥大学卢卡斯数学教授席位四百年来最伟大思想家的故事，包括牛顿、狄拉克、霍金等，串起一部数学物理发展史。","id":4,"color":"#1a3a2a","progress":100,"author":"帕特里克·诺克斯","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"从牛顿到霍金"},{"year":"2021-08","summary":"一个瘦弱的小男孩拥有特殊能力：他能“偷走别人的影子”，从而看见他人心底的秘密和伤痛。他用自己的天赋帮助他人，却始终无法直面自己的内心。","id":5,"color":"#3d1f2a","progress":100,"author":"马克·李维","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"偷影子的人"},{"year":"2021-09","summary":"余光中亲自审订的散文精选集，写日常琐碎与故园怀念，展现“右手写诗，左手写散文”的文学魅力。","id":6,"color":"#2d2515","progress":100,"author":"余光中","nationality":"","reflection":"","keywords":[],"cover":"","title":"余光中都是你"},{"year":"2021-10","summary":"阿富汗富家少年与仆人之间的背叛与救赎。“为你，千千万万遍”，一个关于罪行、友谊与重回故土的故事。","id":7,"color":"#1f2d3a","progress":100,"author":"卡勒德·胡赛尼","nationality":"美籍阿富汗","reflection":"","keywords":["美籍阿富汗"],"cover":"","title":"追风筝的人"},{"year":"2021-11","summary":"十六岁少年霍尔顿被学校开除后在纽约游荡三天，厌恶成人世界的虚伪，只想做一个守望麦田的人。","id":8,"color":"#3e2515","progress":100,"author":"J.D.塞林格","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"麦田里的守望者"},{"year":"2021-12","summary":"清代自传体散文，以作者夫妇的居家生活为主线，记闺房之乐、浪游之快，平淡而情真。","id":9,"color":"#0f2847","progress":100,"author":"沈复","nationality":"","reflection":"","keywords":[],"cover":"","title":"浮生六记"},{"year":"2022-01","summary":"抗战初期方鸿渐等人的留学归来与婚恋挣扎。“围在城里的人想逃出来，城外的人想冲进去”，讽刺世相百态。","id":10,"color":"#2a1a3b","progress":100,"author":"钱钟书","nationality":"","reflection":"","keywords":[],"cover":"","title":"围城"},{"year":"2022-02","summary":"三毛与荷西在撒哈拉沙漠的异域生活，记录沙漠趣事、风土人情，充满浪漫与浓情的流浪传奇。","id":11,"color":"#1b3a5c","progress":100,"author":"三毛","nationality":"","reflection":"","keywords":[],"cover":"","title":"撒哈拉的故事"},{"year":"2022-03","summary":"赏云协会官方出版物，介绍46种云彩和大气光学现象，教你识别碎积云、夜光云等，收录百余幅摄影作品。","id":12,"color":"#2e1a1a","progress":100,"author":"加文·普雷特-平尼","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"云彩收集者手册"},{"year":"2022-04","summary":"截取拿破仑、歌德、列宁等伟人一生中决定性的瞬间，展现人类精神的闪耀时刻与命运的戏剧性转折。","id":13,"color":"#1a2a1a","progress":100,"author":"斯蒂芬·茨威格","nationality":"奥","reflection":"","keywords":["奥"],"cover":"","title":"人类群星闪耀时"},{"year":"2022-05","summary":"布恩迪亚家族七代人的传奇与马孔多小镇的兴衰，魔幻现实主义代表作，折射拉丁美洲的历史变迁。","id":14,"color":"#3a2d1a","progress":100,"author":"加西亚·马尔克斯","nationality":"哥伦比亚","reflection":"","keywords":["哥伦比亚"],"cover":"","title":"百年孤独"},{"year":"2022-06","summary":"畅销书作家在家中被杀，真凶虽已明确，但深藏的恶意远比罪行更令人不寒而栗。手记与自白层层反转，直抵人性最黑暗的角落。","id":15,"color":"#2d1f2a","progress":100,"author":"东野圭吾","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"恶意"},{"year":"2022-07","summary":"卢浮宫馆长离奇死亡，留下密码线索。哈佛符号学教授在解密过程中，揭开一个可能颠覆宗教历史的惊天秘密。","id":16,"color":"#152535","progress":100,"author":"丹·布朗","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"达·芬奇密码"},{"year":"2022-08","summary":"军方秘密寻找外星文明的“红岸工程”取得突破，四光年外的三体文明正扑向地球，人类命运迎来前所未有的挑战。","id":17,"color":"#3d0f1f","progress":100,"author":"刘慈欣","nationality":"","reflection":"","keywords":[],"cover":"","title":"三体（一）"},{"year":"2022-09","summary":"孤儿哈利在11岁生日得知自己是巫师，进入霍格沃茨魔法学校，结识好友，并发现一块能让人长生不老的魔法石。","id":18,"color":"#1a3525","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与魔法石"},{"year":"2022-10","summary":"未来环境恶化，地球政府派出远征队让年轻人向未来移民，经历多个不再适合人类居住的时代，最终到达一万年后。","id":19,"color":"#352a1a","progress":100,"author":"刘慈欣","nationality":"","reflection":"","keywords":[],"cover":"","title":"时间移民"},{"year":"2022-11","summary":"父母被球状闪电化为灰烬后，陈博士踏上破解这一神秘现象的道路，却发现它可能成为决定国家存亡的终极武器。","id":20,"color":"#1f1f2d","progress":100,"author":"刘慈欣","nationality":"","reflection":"","keywords":[],"cover":"","title":"球状闪电"},{"year":"2022-12","summary":"三体舰队逼近地球，人类启动“面壁计划”。宇宙是一座黑暗森林，每个文明都是带枪的猎人，一旦暴露就会被消灭。","id":21,"color":"#2d3a1f","progress":100,"author":"刘慈欣","nationality":"","reflection":"","keywords":[],"cover":"","title":"三体（二）-黑暗森林"},{"year":"2023-01","summary":"威慑纪元开启，人类与三体人维持脆弱平衡。但在宇宙的终极规律面前，死神才是永恒的赢家。","id":22,"color":"#4a1a2a","progress":100,"author":"刘慈欣","nationality":"","reflection":"","keywords":[],"cover":"","title":"三体（三）-死神永生"},{"year":"2023-02","summary":"15世纪巴黎，吉卜赛少女爱斯梅拉达与敲钟人卡西莫多、副主教克洛德之间的悲剧，揭露教会的虚伪与残忍。","id":23,"color":"#152d2d","progress":100,"author":"维克多·雨果","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"巴黎圣母院"},{"year":"2023-03","summary":"霍格沃茨第二学年，学生接连被石化，“密室”被打开，哈利发现自己能与蛇对话，并陷入一场关于血统的阴谋。","id":24,"color":"#3a1a0f","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与密室"},{"year":"2023-04","summary":"收录老舍四十年创作生涯中的70余篇散文，写北京风物、市井生活与文学评论，幽默生动，京味十足。","id":25,"color":"#1a1f3a","progress":100,"author":"老舍","nationality":"","reflection":"","keywords":[],"cover":"","title":"老舍散文集"},{"year":"2023-05","summary":"渡边与情绪脆弱的直子、活泼的绿子之间纠葛的爱情。青春期的孤独、迷茫与成长的痛楚交织其中。","id":26,"color":"#2a2d15","progress":100,"author":"村上春树","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"挪威的森林"},{"year":"2023-06","summary":"传闻中杀害哈利父母的凶手小天狼星·布莱克越狱，目标是哈利。这一学年，哈利学会了守护神咒，也揭开了当年的真相。","id":27,"color":"#3a1525","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与阿兹卡班囚徒"},{"year":"2023-07","summary":"以宏大的历史视角梳理三千年中国文学的精神主脉与审美流变，与《文化苦旅》并称余秋雨文化大散文代表作。","id":28,"color":"#15352a","progress":100,"author":"余秋雨","nationality":"","reflection":"","keywords":[],"cover":"","title":"中国文脉"},{"year":"2023-08","summary":"杂文集，对道德伦理、个体尊严、社会现象进行犀利剖析，以反讽和幽默直面复杂事态。","id":29,"color":"#152d3a","progress":100,"author":"王小波","nationality":"","reflection":"","keywords":[],"cover":"","title":"沉默的大多数"},{"year":"2023-08","summary":"心智障碍者查理通过脑部手术变成天才，但智慧又将不可挽回地衰退。以报告形式记录“我”的蜕变，叩问幸福的真谛。","id":30,"color":"#3a1f15","progress":100,"author":"丹尼尔·凯斯","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"献给阿尔吉侬的花束"},{"year":"2023-08","summary":"收录20余位现当代文学大家的散文名篇，围绕亲情、爱情与友情，书写生命中那些令人动容的情感。","id":31,"color":"#1f1f3a","progress":100,"author":"季羡林 / 史铁生 / 沈从文","nationality":"","reflection":"","keywords":[],"cover":"","title":"我想做一个在葬礼上描述你一生的人"},{"year":"2023-08","summary":"2012年诺奖得主莫言的鸿篇巨制，以母亲上官鲁氏的一生为缩影，还原中国近百年来的动荡与变迁。","id":32,"color":"#2d2d1a","progress":100,"author":"莫言","nationality":"","reflection":"","keywords":[],"cover":"","title":"丰乳肥臀"},{"year":"2023-08","summary":"14岁女孩苏菲不断收到神秘信件，在哲学导师指引下学习西方哲学史。你会在故事中不断追问：“我是谁？世界从何而来？”","id":33,"color":"#2d1f3a","progress":100,"author":"乔斯坦·贾德","nationality":"挪威","reflection":"","keywords":["挪威"],"cover":"","title":"苏菲的世界"},{"year":"2023-08","summary":"一具无法辨认身份的尸体，一位被警方锁定的邻居母女。数学天才以逻辑布下匪夷所思的迷局，让整个案件仿佛一道无解的方程——最完美的献身，也是最令人窒息的诡计。","id":34,"color":"#3a152d","progress":100,"author":"东野圭吾","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"嫌疑人X的献身"},{"year":"2023-08","summary":"一宗离奇命案牵出跨度近20年的纠葛。两个孩子，一个在阳光下优雅行走，一个在黑暗中无声爬行——他们的命运如枪虾与虾虎鱼般共生，却永远无法在白夜中牵手。","id":35,"color":"#1a2d2d","progress":100,"author":"东野圭吾","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"白夜行"},{"year":"2023-08","summary":"反乌托邦经典。未来世界，人类通过试管培植、条件反射和心理操控失去个性，快乐却不再自由。","id":36,"color":"#2d1a2d","progress":100,"author":"阿道司·赫胥黎","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"美丽新世界"},{"year":"2023-08","summary":"红学大家周汝昌从诗眼、格律、意象切入，精当品读唐诗宋词，展现古典诗词的音韵之美与文化底蕴。","id":37,"color":"#1a1a2d","progress":100,"author":"周汝昌","nationality":"","reflection":"","keywords":[],"cover":"","title":"周汝昌讲唐诗宋词"},{"year":"2023-08","summary":"哈利与好友离开学校，在外逃亡寻找并摧毁魂器。终极决战在霍格沃茨打响，生死圣器的秘密最终揭晓。","id":38,"color":"#3a0f2d","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与死亡圣器"},{"year":"2023-08","summary":"收录王小波与李银河的往来书信，真挚热烈的爱情告白，字里行间是思想与灵魂的碰撞。","id":39,"color":"#0f2d3a","progress":100,"author":"王小波 / 李银河","nationality":"","reflection":"","keywords":[],"cover":"","title":"爱你就像爱生命"},{"year":"2023-08","summary":"沈从文散文集，记录旅途见闻与人生感悟，以细腻笔触描绘山水风光与乡愁记忆。","id":40,"color":"#2d0f2a","progress":100,"author":"沈从文","nationality":"","reflection":"","keywords":[],"cover":"","title":"慢慢，走走又停停"},{"year":"2023-08","summary":"伊丽莎白与达西、吉英与彬格莱等几对恋人的婚姻故事，幽默刻画19世纪英国乡镇生活，探讨爱情与财产的关系。","id":41,"color":"#1a3a1f","progress":100,"author":"简·奥斯汀","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"傲慢与偏见"},{"year":"2023-08","summary":"退休公务员“地下室人”的内心独白，探讨自由意志、人的非理性，被公认为存在主义文学的先驱之作。","id":42,"color":"#3a2d0f","progress":100,"author":"陀思妥耶夫斯基","nationality":"俄","reflection":"","keywords":["俄"],"cover":"","title":"地下室手记"},{"year":"2023-08","summary":"年轻水手唐泰斯遭人陷害打入黑牢，越狱后获得宝藏化身基督山伯爵，向仇人展开一场精妙绝伦的复仇。","id":43,"color":"#1f3a15","progress":100,"author":"大仲马","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"基督山伯爵"},{"year":"2023-08","summary":"虚拟现实题材开山之作。主人公参与游戏测试后不断收到“快逃”的警告，现实与虚拟的边界逐渐模糊，令人深陷真假难辨的迷局。","id":44,"color":"#151f3a","progress":100,"author":"冈岛二人（井上泉、德山谆一）","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"克莱因壶"},{"year":"2023-08","summary":"脾气古怪的59岁老头欧维屡次自杀未遂，新邻居的到来让他重新找到活着的意义。一个温暖治愈的故事。","id":45,"color":"#2a1a1a","progress":100,"author":"弗雷德里克·巴克曼","nationality":"瑞典","reflection":"","keywords":["瑞典"],"cover":"","title":"一个叫欧维的男人决定去死"},{"year":"2023-08","summary":"收录《遥远的旅行》和《河流流经的小城故事》两部中篇，以细腻笔触书写情感世界，展现川端文学的悲与美。","id":46,"color":"#3a3a1f","progress":100,"author":"川端康成","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"遥远的旅行"},{"year":"2023-08","summary":"赛博朋克流派开山之作。天才黑客、女杀手、特种部队军官受雇去偷钥匙、获取密码，深入网络空间探寻人工智能的秘密。（未看完）","id":47,"color":"#1a3a3a","progress":100,"author":"威廉·吉布森","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"神经漫游者"},{"year":"2023-08","summary":"科幻作品集，以刘慈欣《人和吞食者》为主打。外星文明驾驶巨型飞船君临地球，人类奋力抵抗，但地球终将被吞噬。","id":48,"color":"#1a1f2d","progress":100,"author":"刘慈欣 领衔","nationality":"","reflection":"","keywords":[],"cover":"","title":"吞噬地球"},{"year":"2023-08","summary":"长篇哲思散文。史铁生在地坛的寂静中追忆母亲、思索人生，是对生命的深刻叩问与精神疗愈之旅。","id":49,"color":"#2d2d3a","progress":100,"author":"史铁生","nationality":"","reflection":"","keywords":[],"cover":"","title":"我与地坛"},{"year":"2023-08","summary":"一桩真实的弑父案，老卡拉马佐夫与三个儿子两代人之间的尖锐冲突。陀氏文学生涯的巅峰，深刻探讨信仰、理性与自由意志。（未看完）","id":50,"color":"#3a2a15","progress":100,"author":"陀思妥耶夫斯基","nationality":"俄","reflection":"","keywords":["俄"],"cover":"","title":"卡拉马佐夫兄弟"},{"year":"2023-08","summary":"阿拉伯部落妇女被掳即将贩卖为奴，本尼西协助破案，在茫茫沙漠追踪贩奴驼队，历经奇遇。","id":51,"color":"#2d3a2d","progress":100,"author":"卡尔·麦","nationality":"德","reflection":"","keywords":["德"],"cover":"","title":"沙漠秘井"},{"year":"2023-08","summary":"用大众化的视角还原历史事件与人物背后的细节，让历史变得真实可感、富有温度。","id":52,"color":"#1a152d","progress":100,"author":"张玮（馒头大师）","nationality":"","reflection":"","keywords":[],"cover":"","title":"历史的温度3"},{"year":"2023-08","summary":"从元素周期表到超弦理论，讲述量子力学的发展史，穿插爱因斯坦、薛定谔、费曼等科学家的趣闻轶事。","id":53,"color":"#3a2d2d","progress":100,"author":"吴京平","nationality":"","reflection":"","keywords":[],"cover":"","title":"从无到有——量子力学外传"},{"year":"2023-08","summary":"动物成功革命将人类赶出农场，但新的特权阶级悄然形成。反乌托邦政治寓言，讽刺革命后的权力腐化。","id":54,"color":"#3a1a1a","progress":100,"author":"乔治·奥威尔","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"动物农场"},{"year":"2023-08","summary":"“老大哥在看着你”。反乌托邦经典，描绘一个思想受控、语言被篡改的极权社会，对权力的滥用发出深刻警示。","id":55,"color":"#1f153a","progress":100,"author":"乔治·奥威尔","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"1984"},{"year":"2023-08","summary":"印度神话集成，讲述梵天、湿婆、毗湿奴三大主神及众多神祇、英雄的传奇故事。","id":56,"color":"#2a3a1a","progress":100,"author":"","nationality":"","reflection":"","keywords":[],"cover":"","title":"印度神话"},{"year":"2023-08","summary":"美国青年拉里在战争中目睹战友死亡，战后放弃一切游历世界，追寻人生意义。探讨物质繁荣下的精神归宿。","id":57,"color":"#152a2d","progress":100,"author":"威廉·萨默赛特·毛姆","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"刀锋"},{"year":"2023-08","summary":"“大河三部曲”开篇，天回镇女主人蔡大嫂在甲午战争后的爱恨纠葛与命运沉浮，展现四川各阶层众生相。","id":58,"color":"#2d1f0f","progress":100,"author":"李劼人","nationality":"","reflection":"","keywords":[],"cover":"","title":"死水微澜"},{"year":"2023-08","summary":"湘西茶峒小镇，船家少女翠翠与两兄弟的纯真爱情。一曲田园牧歌，写出人性的善良与命运的无奈。","id":59,"color":"#3a2a1f","progress":100,"author":"沈从文","nationality":"","reflection":"","keywords":[],"cover":"","title":"边城"},{"year":"2023-08","summary":"青年画家为躲避俗世烦忧，隐居山村追寻“非人情”的美，在自然与艺术中寻求精神的超脱。","id":60,"color":"#1a2d1f","progress":100,"author":"夏目漱石","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"草枕"},{"year":"2023-08","summary":"老渔夫圣地亚哥连续84天没捕到鱼，第85天钓上一艘小船还大的马林鱼，在远海与之搏斗两天两夜，展现人的尊严与坚韧。","id":61,"color":"#2d1515","progress":100,"author":"欧内斯特·海明威","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"老人与海"},{"year":"2023-08","summary":"哈佛毕业生写的逻辑入门书，提炼50个实用推理法则，帮助你在学习和生活中更好地进行逻辑思考。","id":62,"color":"#1f3a2d","progress":100,"author":"布兰登·罗伊尔","nationality":"加","reflection":"","keywords":["加"],"cover":"","title":"一本小小的蓝色逻辑书"},{"year":"2023-08","summary":"神秘富豪盖茨比夜夜笙歌只为重拾旧爱，但爵士时代纸醉金迷下，“美国梦”终将破灭，被誉为最伟大的英文小说之一。","id":63,"color":"#3a1a3a","progress":100,"author":"F.S.菲茨杰拉德","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"了不起的盖茨比"},{"year":"2023-08","summary":"伏地魔归来，魔法部却竭力否认。哈利组织学生自卫队“D.A.”，并在预言中得知自己与黑魔王的最终宿命。","id":64,"color":"#152a3a","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与凤凰社"},{"year":"2023-08","summary":"哈利得到一本署名“混血王子”的旧魔药课本，邓布利多开始给他单独授课，逐步揭示伏地魔不死的秘密——魂器。","id":65,"color":"#152d1a","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与“混血”王子"},{"year":"2023-08","summary":"舞蹈评论家岛村三次前往雪国，与艺伎驹子、少女叶子之间的情感纠葛。唯美虚无之美，徒劳与哀愁。","id":66,"color":"#1f3a1f","progress":100,"author":"川端康成","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"雪国"},{"year":"2023-08","summary":"哈利意外成为三强争霸赛的第四名勇士，经历重重考验，最终在奖杯处遭遇伏地魔的重生。","id":67,"color":"#2d152a","progress":100,"author":"J.K.罗琳","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"哈利·波特与火焰杯"},{"year":"2023-08","summary":"一段跨越半个多世纪的爱情史诗，穷尽了爱情的所有可能性。马尔克斯自认最好的作品。","id":68,"color":"#351a2d","progress":100,"author":"加西亚·马尔克斯","nationality":"哥伦比亚","reflection":"","keywords":["哥伦比亚"],"cover":"","title":"霍乱时期的爱情"},{"year":"2023-09-17","summary":"福克纳小说奖获奖作品，由三个中篇组成。纽约哈勒姆区单亲妈妈和她的姑姑，她们的决定怎样影响了周围的世界。","id":69,"color":"#3a1f2d","progress":100,"author":"琼·西尔伯","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"时间胶囊"},{"year":"2023-09-20","summary":"丝厂工人许三观靠着卖血渡过人生的一个个难关——娶亲、救子、款待贵客……当他老了发现血再也无人要时，精神崩溃了。","id":70,"color":"#2a1a3a","progress":100,"author":"余华","nationality":"","reflection":"","keywords":[],"cover":"","title":"许三观卖血记"},{"year":"2023-10-10","summary":"主人公毕利挣脱时间羁绊，在过去与未来之间穿梭。德累斯顿大轰炸的经历与外星球的幻想交织，黑色幽默反战经典。","id":71,"color":"#153a2a","progress":100,"author":"库尔特·冯内古特","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"五号屠场"},{"year":"2023-12-06","summary":"暴力青年亚历克斯被捕后接受“厌恶疗法”改造，被剥夺作恶的自由。探讨自由意志与强制改造之间的深刻矛盾。","id":72,"color":"#3a3a15","progress":100,"author":"安东尼·伯吉斯","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"发条橙"},{"year":"2023-12-10","summary":"大学生汉斯到高山疗养院探望表哥，不料自己也留下养病。疗养院中各色人物云集，汉斯的思想在封闭时空中悄然转变。","id":73,"color":"#2a1f1a","progress":50,"author":"托马斯·曼","nationality":"德","reflection":"","keywords":["德"],"cover":"","title":"魔山（上）"},{"year":"2023-12-25","summary":"青年学生在伊豆旅行途中偶遇流浪舞女薰子，两人之间淡淡的朦胧情愫在山水中悄然滋长。川端康成成名作。","id":74,"color":"#1a2a3a","progress":100,"author":"川端康成","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"伊豆的舞女"},{"year":"2024-01-15","summary":"面对能源枯竭，人类与平行宇宙的外星生命展开电子通道交换。阿西莫夫借此探讨愚昧的盲点与文明存续的根本。","id":75,"color":"#3a152a","progress":100,"author":"艾萨克·阿西莫夫","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"神们自己"},{"year":"2024-01-17","summary":"史铁生在透析治疗间隙写下的哲思随笔，于病痛困顿中探寻信仰、爱与生命的救赎。","id":76,"color":"#152d15","progress":100,"author":"史铁生","nationality":"","reflection":"","keywords":[],"cover":"","title":"病隙碎笔"},{"year":"2024-01-17","summary":"15岁少年米夏与36岁女子汉娜的不伦之恋。多年后在审判纳粹战犯的法庭上重逢，一个惊人的秘密被揭开。","id":77,"color":"#2d3a1a","progress":100,"author":"本哈德·施林克","nationality":"德","reflection":"","keywords":["德"],"cover":"","title":"朗读者"},{"year":"2024-02-27","summary":"英国老管家史蒂文斯在六天驾车旅行中回忆往事，反思为职业尊严付出的代价与错过的真情。获布克奖。","id":78,"color":"#1f1a2d","progress":100,"author":"石黑一雄","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"长日将尽"},{"year":"2024-02-28","summary":"阿尔及利亚奥兰城突发鼠疫，以里厄医生为代表的人们奋力抗争。在荒诞中奋起反抗，坚持真理与正义。","id":79,"color":"#3a2a2d","progress":100,"author":"阿尔贝·加缪","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"鼠疫"},{"year":"2024-03-01","summary":"战败后的日本引进人类不老技术实现永生，同时颁布“百年法”——所有接种者百年后必须放弃生存权。伦理困境与社会震荡。","id":80,"color":"#1a153a","progress":100,"author":"山田宗树","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"百年法"},{"year":"2024-03-26","summary":"梳理瑞士金融从起源到成为全球财富管理中心的演进，揭示瑞士银行保密制度的形成与国际金融博弈。","id":81,"color":"#3a2d1f","progress":100,"author":"让-维塔·冯·穆拉尔特","nationality":"瑞士","reflection":"","keywords":["瑞士"],"cover":"","title":"金融的秘密：一部瑞士金融史"},{"year":"2024-03-26","summary":"进化心理学经典，从进化视角揭示人类的择偶偏好、性心理与亲密关系策略。","id":82,"color":"#2d1a1a","progress":100,"author":"戴维·巴斯","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"欲望的演化：人类的择偶策略"},{"year":"2024-03-31","summary":"以河南延津为背景，讲述普通人“说得着”与“说不着”的故事。被誉为中国版的《百年孤独》。","id":83,"color":"#3a1f1f","progress":100,"author":"刘震云","nationality":"","reflection":"","keywords":[],"cover":"","title":"一句顶一万句"},{"year":"2024-04-04","summary":"取材于1950年金阁寺僧徒纵火真实事件。口吃主人公沟口被金阁的“美”所囚禁，最终选择一把火烧掉它。","id":84,"color":"#1f3a2a","progress":100,"author":"三岛由纪夫","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"金阁寺"},{"year":"2024-04-05","summary":"少年特里斯顿为追求心上人，越过石墙闯入精灵国度寻找坠落的流星，展开一场奇幻冒险。","id":85,"color":"#2a152d","progress":100,"author":"尼尔·盖曼","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"星尘"},{"year":"2024-04-05","summary":"三岛由纪夫的纯爱牧歌。青年渔民新治与富家姑娘初江在南方小岛上相爱，讴歌青春之美与坚韧的生命力。","id":86,"color":"#152a1a","progress":100,"author":"三岛由纪夫","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"潮骚"},{"year":"2024-06-02","summary":"以特立尼达首府西班牙港的米格尔街为背景，描绘殖民地底层小人物的悲欢与挣扎。获布克奖的短篇集。","id":87,"color":"#1a3a2d","progress":50,"author":"V.S.奈保尔","nationality":"印","reflection":"","keywords":["印"],"cover":"","title":"米格尔街"},{"year":"2024-06-02","summary":"短篇集，包含14篇哲理故事，将西方神话、宗教经典与现代生活融合，探讨人性与文明。","id":88,"color":"#1f2a3a","progress":50,"author":"米歇尔·图尼埃","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"大松鸡"},{"year":"2024-06-02","summary":"2006年诺奖得主帕慕克的自传性作品，书写伊斯坦布尔这座“呼愁”之城的建筑、风景与他个人的成长记忆。","id":89,"color":"#3a0f1a","progress":50,"author":"奥尔罕·帕慕克","nationality":"土耳其","reflection":"","keywords":["土耳其"],"cover":"","title":"伊斯坦布尔：一座城市的记忆"},{"year":"2024-06-02","summary":"马来西亚华语文学代表作。以“雨”为主题串联短篇，家族迁徙与个人记忆在湿热南洋中交织。","id":90,"color":"#2d151f","progress":50,"author":"黄锦树","nationality":"马来西亚","reflection":"","keywords":["马来西亚"],"cover":"","title":"雨"},{"year":"2024-07-11","summary":"“科幻鬼才”菲利普·迪克短篇集，收录9篇代表作，探讨“何为真实”及“个体身份建构”等深刻命题。","id":91,"color":"#2a3a2d","progress":100,"author":"菲利普·迪克","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"少数派报告"},{"year":"2024-07-18","summary":"由《野棕榈》和《老人河》两个交替讲述的故事构成，一个关于爱情与囚禁，一个关于洪水与生存。实验性叙事。","id":92,"color":"#1a1f1a","progress":100,"author":"威廉·福克纳","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"野棕榈"},{"year":"2024-07-20","summary":"卡佛成名作，也是《当我们谈论爱情时我们在谈论什么》的完整版。极简叙事下是底层人物的沉默与坚韧。","id":93,"color":"#3a1f0f","progress":50,"author":"雷蒙德·卡佛","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"新手"},{"year":"2024-07-21","summary":"","id":94,"color":"#1f1a3a","progress":100,"author":"黄锦树","nationality":"马来西亚","reflection":"","keywords":["马来西亚"],"cover":"","title":"雨"},{"year":"2024-08-22","summary":"德国心理学家作品，“蚊子”比喻日常小情绪，“大象”比喻背后的心理创伤。教你识别并疗愈深层情绪。","id":95,"color":"#2d2a15","progress":100,"author":"恩斯特弗里德·哈尼希 / 爱娃·温德勒","nationality":"德","reflection":"","keywords":["德"],"cover":"","title":"躲在蚊子后面的大象"},{"year":"2024-08-24","summary":"用小说笔法讲明朝历史。第一部聚焦朱元璋从和尚到皇帝的开国之路，以及徐达、常遇春等名将事迹。","id":96,"color":"#151a3a","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿1：朱元璋"},{"year":"2024-08-26","summary":"朱棣发动“靖难之役”夺位成功，迁都北京、派郑和下西洋等明初重大历史事件。","id":97,"color":"#3a2f1a","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿2：朱棣"},{"year":"2024-09-02","summary":"朱祁镇“土木堡之变”被俘，代宗朱祁钰即位。夺门之变后宦官王振乱政，明朝由盛转衰。","id":98,"color":"#2d1f13","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿3：太监弄乱的王朝"},{"year":"2024-09-04","summary":"明宪宗、明孝宗时期，后宫与朝堂怪事连连，宦官、文官、外戚明争暗斗，宫廷风云变幻。","id":99,"color":"#1a3038","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿4：妖孽横行的宫廷"},{"year":"2024-09-07","summary":"二战后期美国人类学家研究日本国民性的经典，以“菊”（皇室象征）与“刀”（武士文化）揭示日本文化的矛盾性。","id":100,"color":"#4a2c1a","progress":100,"author":"鲁思·本尼迪克特","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"菊与刀"},{"year":"2024-09-11","summary":"斯多葛哲学入门指南，介绍消极想象、控制二分法等实用技巧，教你在不确定的世界中保持内心安宁。","id":101,"color":"#1a3a2a","progress":100,"author":"威廉·B·欧文","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"像哲学家一样生活：斯多葛哲学的生活艺术"},{"year":"2024-09-12","summary":"美籍华裔作家张纯如历时多年调查走访，全面揭露南京大屠杀的历史真相，震撼世界。","id":102,"color":"#3d1f2a","progress":100,"author":"张纯如","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"南京大屠杀：第二次世界大战中被遗忘的大浩劫"},{"year":"2024-09-19","summary":"天宝十四年，长安小吏李善德被迫接受“从岭南运送新鲜荔枝”的不可能任务，展开一场惊心动魄的千里转运之旅。","id":103,"color":"#2d2515","progress":100,"author":"马伯庸","nationality":"","reflection":"","keywords":[],"cover":"","title":"长安的荔枝"},{"year":"2024-09-29","summary":"嘉靖年间，严嵩父子专权，夏言、杨继盛等忠臣以死抗争，海瑞抬棺谏嘉靖。悲壮与权谋交织。","id":104,"color":"#1f2d3a","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿5：内阁不相信眼泪"},{"year":"2024-10-06","summary":"万历皇帝三十年不上朝，张居正改革、援朝抗倭、东林党崛起。大明王朝盛极而衰，山雨欲来。","id":105,"color":"#3e2515","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿6：帝国，山雨欲来"},{"year":"2024-10-12","summary":"用博弈论分析商业、政治和日常生活中的策略互动，教你在对抗与合作中做出最优决策。","id":106,"color":"#0f2847","progress":100,"author":"阿维纳什·K·迪克西特 / 巴里·J·奈尔伯夫","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"策略思维：商界政界及日常生活中的策略竞争"},{"year":"2024-11-04","summary":"麻省理工学院概率论入门教材，涵盖概率模型、随机变量、极限理论及最小二乘估计等内容。","id":107,"color":"#2a1a3b","progress":50,"author":"迪米特里·伯特瑟卡斯 / 约翰·齐齐克利斯","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"概率导论"},{"year":"2024-11-24","summary":"以一家“五月花”老咖啡馆为舞台，三代人的命运在雨林小镇中交错。获花踪文学奖。","id":108,"color":"#1b3a5c","progress":100,"author":"黎紫书","nationality":"马来西亚","reflection":"","keywords":["马来西亚"],"cover":"","title":"告别的年代"},{"year":"2024-12-09","summary":"天启年间，东林党与阉党斗争激烈，魏忠贤专权，后金崛起。帝国在黑暗中寻找出路。","id":109,"color":"#2e1a1a","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿7：拐弯中的帝国"},{"year":"2025-01-03","summary":"魏忠贤从市井无赖到权倾朝野的太监之首，东林六君子慷慨赴死。帝国沉入黑暗深渊。","id":110,"color":"#1a2a1a","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿8：魏忠贤"},{"year":"2025-01-05","summary":"崇祯帝以死殉国，李自成攻入北京，吴三桂引清兵入关。明朝覆灭，全书在历史的叹息中收尾。","id":111,"color":"#3a2d1a","progress":100,"author":"当年明月","nationality":"","reflection":"","keywords":[],"cover":"","title":"明朝那些事儿9：大结局"},{"year":"2025-01-12","summary":"河合让治收养少女直美，想把她培养成理想伴侣。但直美长大后却掌控了这段关系，展现谷崎独特的唯美与虐恋美学。","id":112,"color":"#2d1f2a","progress":100,"author":"谷崎润一郎","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"痴人之爱"},{"year":"2025-01-15","summary":"职场心理指南，提倡在快节奏生活中主动暂停、重新审视方向，寻找工作与生活的平衡。","id":113,"color":"#152535","progress":100,"author":"全玉杓","nationality":"韩","reflection":"","keywords":["韩"],"cover":"","title":"刻意暂停"},{"year":"2025-01-25","summary":"通过历史档案与访谈记录八位纳粹高官子女的生命历程，探讨血缘纽带与历史罪责的冲突与代际创伤。","id":114,"color":"#3d0f1f","progress":100,"author":"塔妮娅·克拉斯尼昂斯基","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"纳粹的孩子们"},{"year":"2025-02-10","summary":"用“青年与哲人对谈”形式阐释阿德勒心理学。“课题分离”“目的论”等核心概念，鼓励你摆脱他人认可的束缚。","id":115,"color":"#1a3525","progress":100,"author":"岸见一郎 / 古贺史健","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"被讨厌的勇气"},{"year":"2025-02-15","summary":"孤身醒来的宇航员与外星科学家跨越语言和物种障碍携手拯救太阳。温情与硬科幻交织，获雨果奖。","id":116,"color":"#352a1a","progress":100,"author":"安迪·威尔","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"挽救计划"},{"year":"2025-02-16","summary":"从心理学和社交学角度系统探讨如何在复杂人际关系中做到情商在线、进退得体。","id":117,"color":"#1f1f2d","progress":100,"author":"李晨","nationality":"","reflection":"","keywords":[],"cover":"","title":"人情练达的学问"},{"year":"2025-02-20","summary":"进化生物学经典。“红皇后效应”比喻两性为争夺交配权在进化中相互追赶，揭示人类本性的演化轨迹。","id":118,"color":"#2d3a1f","progress":100,"author":"马特·里德利","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"红皇后效应：性与人性的演化"},{"year":"2025-02-21","summary":"情感案例集，收录401天的真实咨询记录，剖析从单身到亲密关系建立的挑战与成长。","id":119,"color":"#4a1a2a","progress":100,"author":"李晨","nationality":"","reflection":"","keywords":[],"cover":"","title":"从“注孤生”到“领证啦”——401天情感辅导实录"},{"year":"2025-02-22","summary":"电影导演是枝裕和以母亲去世为灵感写成的小说。长子忌日家庭聚会中，那些说不出口的爱与迟来的领悟。","id":120,"color":"#152d2d","progress":100,"author":"是枝裕和","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"步履不停"},{"year":"2025-02-23","summary":"短篇小说集，荒诞、幽默而温情，在奇异日常中挖掘人性深处。以色列最具国际影响力的作家之一。","id":121,"color":"#3a1a0f","progress":50,"author":"埃特加·凯雷特","nationality":"以","reflection":"","keywords":["以"],"cover":"","title":"银河系边缘的小失常"},{"year":"2025-03-19","summary":"1982年出生的普通韩国女性金智英，从小到大在偏见与困境中挣扎。揭示亚洲女性的生存困境。","id":122,"color":"#1a1f3a","progress":100,"author":"赵南柱","nationality":"韩","reflection":"","keywords":["韩"],"cover":"","title":"82年生的金智英"},{"year":"2025-03-22","summary":"2024年诺贝尔文学奖得主韩江代表作。妻子英惠突然拒绝吃肉，三个章节从不同视角揭示暴力、欲望与反叛。","id":123,"color":"#2a2d15","progress":100,"author":"韩江","nationality":"韩","reflection":"","keywords":["韩"],"cover":"","title":"素食者"},{"year":"2025-04-01","summary":"渭河平原白、鹿两大家族的恩怨纷争，跨越半个世纪的中国乡村史诗。获茅盾文学奖。","id":124,"color":"#3a1525","progress":100,"author":"陈忠实","nationality":"","reflection":"","keywords":[],"cover":"","title":"白鹿原"},{"year":"2025-05-31","summary":"75岁富豪遭绑架，被索要价值75亿日元的红豆。20年后，另一桩完美犯罪悄然浮现——横跨两代人的高智商犯罪小说。","id":125,"color":"#15352a","progress":100,"author":"冈岛二人（井上泉、德山谆一）","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"99%的诱拐"},{"year":"2025-07-31","summary":"富家千金在密闭的地下避难所中死亡。四名亲友被锁在其中追查真相，本格推理的极限设定，不到最后一页无法猜透。","id":126,"color":"#2d152a","progress":100,"author":"冈岛二人（井上泉、德山谆一）","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"然后，门被关上了"},{"year":"2025-08-16","summary":"短篇小说集，以普罗旺斯乡村生活为题材，描写小人物的苦恼与不幸，抒发对家乡风土人情的怀恋。","id":127,"color":"#1f3a1f","progress":100,"author":"阿尔丰斯·都德","nationality":"法","reflection":"","keywords":["法"],"cover":"","title":"磨坊文札"},{"year":"2025-09-17","summary":"“女版《沧浪之水》”。女大学生许晶晶在求学、求职、情感、成长路上的艰难险阻，写尽当下年轻人的困顿与坚持。","id":128,"color":"#351a2d","progress":100,"author":"阎真","nationality":"","reflection":"","keywords":[],"cover":"","title":"如何是好"},{"year":"2025-09-30","summary":"快递员青柳雅春被诬陷刺杀首相，在绝境中逃亡。平凡市民的信任成为他活下去的唯一依托，一场关于善意与勇气的逃亡。","id":129,"color":"#1a2d1f","progress":100,"author":"伊坂幸太郎","nationality":"日","reflection":"","keywords":["日"],"cover":"","title":"金色梦乡"},{"year":"2025-10-04","summary":"赏金猎人追杀逃亡仿生人，在“移情测试”中逐渐模糊人与机器的边界。电影《银翼杀手》原著。","id":130,"color":"#3a2a1f","progress":100,"author":"菲利普·迪克","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"仿生人会梦见电子羊吗？"},{"year":"2025-10-12","summary":"聚焦年轻人在情感中的认知盲区，系统讲解如何识别健康关系、设立边界和经营长期亲密关系。","id":131,"color":"#2d1515","progress":100,"author":"李晨","nationality":"","reflection":"","keywords":[],"cover":"","title":"给年轻人的情感认知课：好好生活好好爱"},{"year":"2025-10-22","summary":"少女房思琪被补习班老师长期性侵。以优美文字书写极致痛楚，揭露权力不对等下的结构性暴力。","id":132,"color":"#152a3a","progress":100,"author":"林奕含","nationality":"","reflection":"","keywords":[],"cover":"","title":"房思琪的初恋乐园"},{"year":"2026-03-29","summary":"诺奖得主塞勒代表作。“选择架构”概念——通过小改变（助推）引导人们做出更好决策，温和的家长主义。","id":133,"color":"#1f3a2d","progress":50,"author":"理查德·塞勒 / 卡斯·桑斯坦","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"助推（终极版）"},{"year":"2026-03-29","summary":"NPR知名主播从历史、心理学和文化层面揭秘金钱的本质，即使不懂经济学也能轻松理解。","id":134,"color":"#2d1f0f","progress":50,"author":"雅各布·戈德斯坦","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"金钱星球"},{"year":"2026-03-29","summary":"从经济学视角重新定义“懒”，提倡用聪明的懒惰取代无效忙碌，释放更高效率。","id":135,"color":"#3a1a3a","progress":50,"author":"纪坪","nationality":"","reflection":"","keywords":[],"cover":"","title":"“懒”经济学"},{"year":"2026-05-03","summary":"硅谷投资人纳瓦尔的智慧箴言集，探讨财富创造与幸福人生的理念。“把自己产品化”等金句广为流传。","id":136,"color":"#152d1a","progress":100,"author":"埃里克·乔根森","nationality":"美","reflection":"","keywords":["美"],"cover":"","title":"纳瓦尔宝典"},{"year":"2026-05-08","summary":"太白金星李长庚受命策划西天取经的“九九八十一难”。职场官僚与权谋博弈在神仙世界展开，幽默解构经典。","id":137,"color":"#3a0f2d","progress":100,"author":"马伯庸","nationality":"","reflection":"","keywords":[],"cover":"","title":"太白金星有点烦"},{"year":"2026-05-09","summary":"《太白金星有点烦》续作。李长庚继续在西游体制内左支右绌，轻松诙谐。","id":138,"color":"#1a1a2d","progress":100,"author":"马伯庸","nationality":"","reflection":"","keywords":[],"cover":"","title":"桃花源没事儿"},{"year":"2026-05-10","summary":"1884年科幻经典，以二维世界“平面国”为背景探讨维度概念，被视作多维空间与数学哲学的启蒙之作。","id":139,"color":"#2d1a2d","progress":100,"author":"埃德温·艾勃特","nationality":"英","reflection":"","keywords":["英"],"cover":"","title":"平面国"},{"year":"2026-05-13","summary":"从日本“失落的三十年”出发，回顾其经济衰退的教训，为中国提供宏观与个人应对策略。","id":140,"color":"#0f2d3a","progress":100,"author":"分析师Borden","nationality":"","reflection":"","keywords":[],"cover":"","title":"以日为鉴：衰退时代生存指南"},{"year":"2026-05-16","summary":"“王二”和“陈清扬”在云南知青岁月的故事。反讽荒诞年代的荒谬，王小波代表作。","id":141,"color":"#3a2d0f","progress":100,"author":"王小波","nationality":"","reflection":"","keywords":[],"cover":"","title":"黄金时代"},{"year":"2026-06-01","summary":"“寻根文学”代表作。知青“棋呆子”王一生以棋入道，在动荡年代坚守内心秩序，道家的“无为而无不为”。","id":142,"color":"#1a3a1f","progress":100,"author":"阿城","nationality":"","reflection":"","keywords":[],"cover":"","title":"棋王"}];
-function loadBooks(){var s=localStorage.getItem('bs_books');if(s){try{return JSON.parse(s)}catch(e){}}return JSON.parse(JSON.stringify(DEFAULT_BOOKS))}
-function saveBooks(a){localStorage.setItem('bs_books',JSON.stringify(a))}
-var books=loadBooks();
-function nextId(){return books.length?Math.max.apply(null,books.map(function(b){return b.id}))+1:1}
+let books = [];
 
-function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-function coverHTML(b,w,h){
-  if(b.cover) return '<img src="'+esc(b.cover)+'" alt="'+esc(b.title)+'" style="width:100%;height:100%;object-fit:cover">';
-  var fs=w<=90?11:w<=120?13:15;
-  return '<div class="cover-gen" style="background:'+b.color+'"><span class="cover-gen-title" style="font-size:'+fs+'px">'+esc(b.title)+'</span><span class="cover-gen-author">'+esc(b.author)+'</span></div>';
+function coverHTML(b, w) {
+  if (b.cover_url) return '<img src="' + esc(b.cover_url) + '" alt="' + esc(b.title) + '" style="width:100%;height:100%;object-fit:cover">';
+  var fs = w <= 90 ? 11 : w <= 120 ? 13 : 15;
+  return '<div class="cover-gen" style="background:' + b.color + '"><span class="cover-gen-title" style="font-size:' + fs + 'px">' + esc(b.title) + '</span><span class="cover-gen-author">' + esc(b.author) + '</span></div>';
 }
 
-function formatDate(y){
-  if(!y)return'';
-  if(/\d{4}-\d{2}-\d{2}/.test(y))return y;
-  return y;
-}
-function formatDateShort(y){
-  if(!y)return'';
-  var m=/^(\d{4})-(\d{2})/.exec(y);
-  if(m) return m[1]+'.'+parseInt(m[2]);
+function formatDate(y) { if (!y) return ''; return y; }
+function formatDateShort(y) {
+  if (!y) return '';
+  var m = /^(\d{4})-(\d{2})/.exec(y);
+  if (m) return m[1] + '.' + parseInt(m[2]);
   return y;
 }
 
-function groupByYear(a){
-  var groups={};
-  a.forEach(function(b){
-    var y=b.year.slice(0,4);
-    if(!groups[y])groups[y]=[];
+function groupByYear(a) {
+  var groups = {};
+  a.forEach(function(b) {
+    var y = b.year.slice(0, 4);
+    if (!groups[y]) groups[y] = [];
     groups[y].push(b);
   });
-  return Object.keys(groups).sort().reverse().map(function(y){return {year:y,books:groups[y]}});
+  return Object.keys(groups).sort().reverse().map(function(y) { return { year: y, books: groups[y] }; });
 }
 
-function renderBookshelf(){
-  var c=document.getElementById('shelf-view');
-  var reading=books.filter(function(b){return b.progress<100});
-  var done=books.filter(function(b){return b.progress>=100});
-  var groups=groupByYear(done);
-  var h='';
-  if(reading.length){
-    h+='<div class="year-section"><div class="year-header"><h2>Currently Reading</h2><span>('+reading.length+')</span></div><div class="year-grid">';
-    reading.forEach(function(b){
-      h+='<div class="book-card" onclick="openBook('+b.id+')"><div class="cover-img-wrap">'+coverHTML(b,155,0)+'</div><div class="book-meta"><div class="book-title-label">'+esc(b.title)+'</div><div class="book-date-label">'+esc(b.author)+'</div></div></div>';
-    });
-    h+='</div></div>';
+async function loadBooks() {
+  try {
+    var resp = await fetch(SUPABASE_URL + '/rest/v1/books?select=*&order=year.desc', { headers: API_HEADERS });
+    if (!resp.ok) { showError('Failed to load books (status ' + resp.status + ')'); return; }
+    books = await resp.json();
+    if (!books.length) { showError('No books yet.'); return; }
+    renderAll();
+  } catch (e) { showError('Connection failed. Please try again later.'); }
+}
+
+function showError(msg) {
+  document.getElementById('shelf-view').innerHTML = '<div class="empty-state"><p>' + msg + '</p></div>';
+  document.getElementById('book-count').textContent = '0 books';
+}
+
+function renderAll() { renderBookshelf(); renderTimeline(); document.getElementById('book-count').textContent = books.length + ' books'; }
+
+function renderBookshelf() {
+  var c = document.getElementById('shelf-view');
+  var reading = books.filter(function(b) { return b.progress < 100; });
+  var done = books.filter(function(b) { return b.progress >= 100; });
+  var groups = groupByYear(done);
+  var h = '';
+  if (reading.length) {
+    h += '<div class="year-section"><div class="year-header"><h2>Currently Reading</h2><span>(' + reading.length + ')</span></div><div class="year-grid">';
+    reading.forEach(function(b) { h += '<div class="book-card" onclick="openBook(' + b.id + ')"><div class="cover-img-wrap">' + coverHTML(b, 155) + '</div><div class="book-meta"><div class="book-title-label">' + esc(b.title) + '</div><div class="book-date-label">' + esc(b.author) + '</div></div></div>'; });
+    h += '</div></div>';
   }
-  groups.forEach(function(g){
-    h+='<div class="year-section"><div class="year-header"><h2>'+g.year+'</h2><span>('+g.books.length+' books)</span></div><div class="year-grid">';
-    g.books.forEach(function(b){
-      h+='<div class="book-card" onclick="openBook('+b.id+')"><div class="cover-img-wrap">'+coverHTML(b,155,0)+'</div><div class="book-meta"><div class="book-title-label">'+esc(b.title)+'</div><div class="book-date-label">'+formatDateShort(b.year)+'</div></div></div>';
-    });
-    h+='</div></div>';
+  groups.forEach(function(g) {
+    h += '<div class="year-section"><div class="year-header"><h2>' + g.year + '</h2><span>(' + g.books.length + ' books)</span></div><div class="year-grid">';
+    g.books.forEach(function(b) { h += '<div class="book-card" onclick="openBook(' + b.id + ')"><div class="cover-img-wrap">' + coverHTML(b, 155) + '</div><div class="book-meta"><div class="book-title-label">' + esc(b.title) + '</div><div class="book-date-label">' + formatDateShort(b.year) + '</div></div></div>'; });
+    h += '</div></div>';
   });
-  if(!books.length) h='<div style="text-align:center;padding:80px;color:var(--text-3)">No books yet. Click &#x2699; to add.</div>';
-  c.innerHTML=h;
-  document.getElementById('book-count').textContent=books.length+' books';
+  c.innerHTML = h;
 }
 
-function renderTimeline(){
-  var c=document.getElementById('timeline-view');
-  var sorted=[].concat(books).sort(function(a,b){return b.year.localeCompare(a.year)});
-  var years=[];sorted.forEach(function(b){var y=b.year.slice(0,4);if(years.indexOf(y)===-1)years.push(y)});
+function renderTimeline() {
+  var c = document.getElementById('timeline-view');
+  var sorted = [].concat(books).sort(function(a, b) { return b.year.localeCompare(a.year); });
+  var years = []; sorted.forEach(function(b) { var y = b.year.slice(0, 4); if (years.indexOf(y) === -1) years.push(y); });
   years.sort().reverse();
-  var h='<div class="timeline-header"><h2>Reading Timeline</h2><div class="timeline-years"><span class="year-chip active" data-year="all" onclick="filterTimeline(\'all\')">All</span>';
-  years.forEach(function(y){h+='<span class="year-chip" data-year="'+y+'" onclick="filterTimeline(\''+y+'\')">'+y+'</span>'});
-  h+='</div></div><div class="timeline-track"><div class="timeline-line"></div><div class="timeline-items" id="timeline-items">';
-  sorted.forEach(function(b,i){
-    var dir=(i%2===0)?'above':'below';
-    h+='<div class="timeline-item '+dir+'" data-year="'+b.year.slice(0,4)+'" onclick="openBook('+b.id+')"><div class="tl-cover-wrap"><div class="timeline-cover">'+coverHTML(b,120,0)+'</div></div><div class="timeline-dot"></div><div class="timeline-meta"><div class="timeline-title">'+esc(b.title)+'</div><div class="timeline-date">'+formatDateShort(b.year)+'</div></div></div>';
+  var h = '<div class="timeline-header"><h2>Reading Timeline</h2><div class="timeline-years"><span class="year-chip active" data-year="all" onclick="filterTimeline(\'all\')">All</span>';
+  years.forEach(function(y) { h += '<span class="year-chip" data-year="' + y + '" onclick="filterTimeline(\'' + y + '\')">' + y + '</span>'; });
+  h += '</div></div><div class="timeline-track"><div class="timeline-line"></div><div class="timeline-items" id="timeline-items">';
+  sorted.forEach(function(b, i) {
+    var dir = (i % 2 === 0) ? 'above' : 'below';
+    h += '<div class="timeline-item ' + dir + '" data-year="' + b.year.slice(0, 4) + '" onclick="openBook(' + b.id + ')"><div class="tl-cover-wrap"><div class="timeline-cover">' + coverHTML(b, 120) + '</div></div><div class="timeline-dot"></div><div class="timeline-meta"><div class="timeline-title">' + esc(b.title) + '</div><div class="timeline-date">' + formatDateShort(b.year) + '</div></div></div>';
   });
-  h+='</div></div>';c.innerHTML=h;
+  h += '</div></div>'; c.innerHTML = h;
 }
 
-function filterTimeline(y){
-  document.querySelectorAll('.year-chip').forEach(function(c){c.classList.toggle('active',c.dataset.year===y)});
-  document.querySelectorAll('.timeline-item').forEach(function(i){i.style.display=(y==='all'||i.dataset.year===y)?'':'none'});
+function filterTimeline(y) { document.querySelectorAll('.year-chip').forEach(function(c) { c.classList.toggle('active', c.dataset.year === y); }); document.querySelectorAll('.timeline-item').forEach(function(i) { i.style.display = (y === 'all' || i.dataset.year === y) ? '' : 'none'; }); }
+
+async function openBook(id) {
+  var b = books.find(function(x) { return x.id === id; }); if (!b) return;
+  var o = document.getElementById('modal-overlay'), m = document.getElementById('modal');
+  m.innerHTML = '<div class="modal-body"><p>Loading...</p></div>'; o.classList.add('open'); document.body.style.overflow = 'hidden';
+  var comments = [], conns = [];
+  try { var cr = await fetch('/api/comments?book_id=' + id); if (cr.ok) comments = await cr.json(); } catch (e) {}
+  try { var nr = await fetch('/api/connections?book_id=' + id); if (nr.ok) conns = await nr.json(); } catch (e) {}
+  var ch = comments.map(function(c) { return '<div class="comment"><div class="comment-author">' + esc(c.author_name) + '</div><div class="comment-body">' + esc(c.body) + '</div><div class="comment-time">' + (c.created_at ? c.created_at.slice(0, 16).replace('T', ' ') : '') + '</div></div>'; }).join('');
+  var relHtml = conns.length ? '<div class="comments-section"><h3>Related Books</h3><div style="display:flex;gap:12px;flex-wrap:wrap">' + conns.map(function(c) {
+    var bk = c.book;
+    return '<div onclick="openBook(' + bk.id + ')" style="width:100px;cursor:pointer;text-align:center"><div class="timeline-cover" style="width:100px">' + (bk.cover_url ? '<img src="' + esc(bk.cover_url) + '" alt="' + esc(bk.title) + '" style="width:100%;height:100%;object-fit:cover">' : '<div class="cover-gen" style="background:' + (bk.color||'#4a2c1a') + ';width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12px;color:#fff">' + esc(bk.title) + '</div>') + '</div><div style="font-size:11px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(bk.title) + '</div></div>';
+  }).join('') + '</div></div>' : '';
+  var dateStr = formatDate(b.year);
+  m.innerHTML = '<button class="modal-close" onclick="closeModal()">\u2715</button><div class="modal-body"><div class="modal-header-row"><div class="modal-cover">' + coverHTML(b, 130) + '</div><div class="modal-info"><h2 class="modal-title">' + esc(b.title) + '</h2><p class="modal-author">' + esc(b.author) + (b.nationality ? ' <span style="font-size:13px;color:var(--text-3)">[' + esc(b.nationality) + ']</span>' : '') + '</p><div class="modal-meta-row"><span>\u{1f4c5} ' + dateStr + '</span><span>\u{1f4d6} ' + b.progress + '% read</span></div><div class="modal-progress-bar"><div class="modal-progress-fill" style="width:' + b.progress + '%"></div></div><div class="modal-keywords" style="margin-top:12px">' + (b.keywords || []).map(function(k) { return '<span class="modal-keyword">' + esc(k) + '</span>'; }).join('') + '</div></div></div><div class="modal-section"><h3>Summary</h3><p>' + esc(b.summary) + '</p></div>' + (b.reflection ? '<div class="modal-section"><h3>My Reflection</h3><p>' + esc(b.reflection) + '</p></div>' : '') + relHtml + '<div class="comments-section"><h3>Comments (' + comments.length + ')</h3><div class="comment-form"><input id="ca-' + b.id + '" placeholder="Your name" maxlength="30"><textarea id="cb-' + b.id + '" placeholder="Share your thoughts..." maxlength="500"></textarea><button class="comment-submit" onclick="submitComment(' + b.id + ')">Post</button></div><div class="comment-list" id="cl-' + b.id + '">' + (ch || '<p style="font-size:13px;color:var(--text-3)">No comments yet.</p>') + '</div></div></div>';
+  o.onclick = function(e) { if (e.target === o) closeModal(); };
 }
 
-function openBook(id){
-  var b=books.find(function(x){return x.id===id});if(!b)return;
-  var o=document.getElementById('modal-overlay'),m=document.getElementById('modal');
-  var cm=JSON.parse(localStorage.getItem('cmts-'+id)||'[]');
-  var ch=cm.map(function(c){return'<div class="comment"><div class="comment-author">'+esc(c.a)+'</div><div class="comment-body">'+esc(c.b)+'</div><div class="comment-time">'+c.t+'</div></div>'}).join('');
-  var dateStr=formatDate(b.year);
-  m.innerHTML='<button class="modal-close" onclick="closeModal()">&#x2715;</button><div class="modal-body"><div class="modal-header-row"><div class="modal-cover">'+coverHTML(b,130,0)+'</div><div class="modal-info"><h2 class="modal-title">'+esc(b.title)+'</h2><p class="modal-author">'+esc(b.author)+(b.nationality?' <span style="font-size:13px;color:var(--text-3)">['+esc(b.nationality)+']</span>':'')+'</p><div class="modal-meta-row"><span>&#x1f4c5; '+dateStr+'</span><span>&#x1f4d6; '+b.progress+'% read</span></div><div class="modal-progress-bar"><div class="modal-progress-fill" style="width:'+b.progress+'%"></div></div><div class="modal-keywords" style="margin-top:12px">'+b.keywords.map(function(k){return'<span class="modal-keyword">'+esc(k)+'</span>'}).join('')+'</div></div></div><div class="modal-section"><h3>Summary</h3><p>'+esc(b.summary)+'</p></div>'+(b.reflection?'<div class="modal-section"><h3>My Reflection</h3><p>'+esc(b.reflection)+'</p></div>':'')+'<div class="comments-section"><h3>Comments ('+cm.length+')</h3><div class="comment-form"><input id="ca-'+b.id+'" placeholder="Your name" maxlength="30"><textarea id="cb-'+b.id+'" placeholder="Share your thoughts..." maxlength="500"></textarea><button class="comment-submit" onclick="submitComment('+b.id+')">Post</button></div><div class="comment-list" id="cl-'+b.id+'">'+(ch||'<p style="font-size:13px;color:var(--text-3)">No comments yet.</p>')+'</div></div></div>';
-  o.classList.add('open');document.body.style.overflow='hidden';
-  o.onclick=function(e){if(e.target===o)closeModal()};
-}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');document.body.style.overflow=''}
-function submitComment(id){
-  var ae=document.getElementById('ca-'+id),be=document.getElementById('cb-'+id);
-  var a=ae.value.trim(),b=be.value.trim();if(!a||!b)return;
-  var cm=JSON.parse(localStorage.getItem('cmts-'+id)||'[]');
-  var n=new Date();
-  cm.unshift({a:a,b:b,t:n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')+' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')});
-  localStorage.setItem('cmts-'+id,JSON.stringify(cm));ae.value='';be.value='';
-  document.getElementById('cl-'+id).innerHTML=cm.map(function(c){return'<div class="comment"><div class="comment-author">'+esc(c.a)+'</div><div class="comment-body">'+esc(c.b)+'</div><div class="comment-time">'+c.t+'</div></div>'}).join('');
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+
+async function submitComment(id) {
+  var ae = document.getElementById('ca-' + id), be = document.getElementById('cb-' + id);
+  var a = ae.value.trim(), b = be.value.trim(); if (!a || !b) return;
+  try {
+    var resp = await fetch('/api/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ book_id: id, author_name: a, body: b }) });
+    if (resp.ok) { ae.value = ''; be.value = ''; openBook(id); } else { alert('Failed to post'); }
+  } catch (e) { alert('Failed to post comment.'); }
 }
 
-function toggleAdmin(){
-  var p=document.getElementById('admin-panel'),s=document.getElementById('shelf-view'),t=document.getElementById('timeline-view'),btn=document.getElementById('admin-btn');
-  var on=p.classList.toggle('active');
-  if(on){s.classList.remove('active');t.classList.remove('active');renderAdminTable();btn.innerHTML='&#x2715';}
-  else{s.classList.add('active');btn.innerHTML='&#x2699;';renderBookshelf();renderTimeline()}
-}
-function renderAdminTable(f){
-  var tb=document.getElementById('admin-tbody');
-  var list=f?books.filter(function(b){return b.title.toLowerCase().indexOf(f)>-1||b.author.toLowerCase().indexOf(f)>-1}):books;
-  tb.innerHTML=list.map(function(b){return'<tr><td>'+b.id+'</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(b.title)+'</td><td>'+esc(b.author)+'</td><td>'+formatDateShort(b.year)+'</td><td><span class="progress-dot '+(b.progress>=100?'done':'wip')+'"></span>'+b.progress+'%</td><td class="actions"><button onclick="editBook('+b.id+')">Edit</button><button class="btn-del" onclick="deleteBook('+b.id+')">Del</button></td></tr>'}).join('');
-  document.getElementById('admin-count').textContent=list.length+' / '+books.length;
-}
-function openAddForm(){openEditForm(null)}
-function editBook(id){openEditForm(books.find(function(b){return b.id===id}))}
-function openEditForm(book){
-  var ie=!!book;
-  var o=document.getElementById('form-overlay'),m=document.getElementById('form-modal');
-  m.innerHTML='<h3>'+(ie?'Edit Book':'Add New Book')+'</h3>'+
-    '<div class="form-group"><label>Title *</label><input id="ef-title" value="'+(ie?esc(book.title):'')+'"></div>'+
-    '<div class="form-group"><label>Author</label><input id="ef-author" value="'+(ie?esc(book.author):'')+'"></div>'+
-    '<div class="form-group"><label>Date (YYYY-MM or YYYY-MM-DD)</label><input id="ef-year" value="'+(ie?book.year:'')+'" placeholder="e.g. 2025-06-18"></div>'+
-    '<div class="form-group"><label>Cover Image</label><input type="file" id="ef-coverFile" accept="image/*" onchange="previewCover()" style="margin-bottom:6px"><div class="cover-preview-wrap" id="cover-preview">'+(ie&&book.cover?'<img src="'+esc(book.cover)+'" alt="Cover">':'<span>No cover</span>')+'</div></div>'+
-    '<div class="form-group"><label>Cover Color (fallback)</label><input id="ef-color" value="'+(ie?book.color:'#4a2c1a')+'" type="color" style="width:60px;height:36px;padding:2px"></div>'+
-    '<div class="form-group"><label>Progress (%)</label><input id="ef-progress" type="number" min="0" max="100" value="'+(ie?book.progress:100)+'"></div>'+
-    '<div class="form-group"><label>Keywords (comma separated)</label><input id="ef-keywords" value="'+(ie?book.keywords.join(','):'')+'" placeholder="Sci-fi, Japanese, Hugo Award"></div>'+
-    '<div class="form-group"><label>Summary</label><textarea id="ef-summary" rows="3">'+(ie?esc(book.summary):'')+'</textarea></div>'+
-    '<div class="form-group"><label>Reflection</label><textarea id="ef-reflection" rows="3">'+(ie?esc(book.reflection):'')+'</textarea></div>'+
-    '<div class="form-actions"><button class="btn" onclick="closeForm()">Cancel</button><button class="btn btn-primary" onclick="saveForm('+(ie?book.id:0)+')">Save</button></div>';
-  o.classList.add('open');
-  o.onclick=function(e){if(e.target===o)closeForm()};
-}
-
-function previewCover(){
-  var fi=document.getElementById('ef-coverFile');
-  var pv=document.getElementById('cover-preview');
-  if(fi.files&&fi.files[0]){
-    var reader=new FileReader();
-    reader.onload=function(e){pv.innerHTML='<img src="'+e.target.result+'" alt="Preview">'};
-    reader.readAsDataURL(fi.files[0]);
-  }
-}
-function closeForm(){document.getElementById('form-overlay').classList.remove('open')}
-function saveForm(id){
-  var t=document.getElementById('ef-title').value.trim();if(!t)return alert('Please enter a title');
-  var fi=document.getElementById('ef-coverFile');
-  if(fi&&fi.files&&fi.files[0]){
-    var saveBtn=document.querySelector('.btn-primary');
-    if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving...'}
-    compressImage(fi.files[0],300,function(dataUrl,err){
-      if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save'}
-      if(err){alert(err);return}
-      doSave(id,t,dataUrl);
-    });
-  }else{
-    doSave(id,t,'');
-  }
-}
-function compressImage(file,maxW,callback){
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var img=new Image();
-    img.onload=function(){
-      var w=img.width,h=img.height;
-      if(w<=maxW){callback(e.target.result);return}
-      var ratio=maxW/w;
-      var c=document.createElement('canvas');
-      c.width=maxW;c.height=h*ratio;
-      var ctx=c.getContext('2d');
-      ctx.drawImage(img,0,0,c.width,c.height);
-      callback(c.toDataURL('image/jpeg',0.8));
-    };
-    img.onerror=function(){callback(null,'Failed to load cover image.')};
-    img.src=e.target.result;
-  };
-  reader.onerror=function(){callback(null,'Failed to read cover image.')};
-  reader.readAsDataURL(file);
-}
-function doSave(id,t,coverData){
-  var d={title:t,author:document.getElementById('ef-author').value.trim(),year:document.getElementById('ef-year').value.trim(),color:document.getElementById('ef-color').value,progress:parseInt(document.getElementById('ef-progress').value)||100,keywords:document.getElementById('ef-keywords').value.split(',').map(function(k){return k.trim()}).filter(Boolean),summary:document.getElementById('ef-summary').value.trim(),reflection:document.getElementById('ef-reflection').value.trim(),cover:coverData};
-  if(!coverData&&id){var ex=books.find(function(b){return b.id===id});if(ex&&ex.cover)d.cover=ex.cover}
-  if(!d.nationality){
-    var kw=d.keywords[0]||'';if(['英','美','日','法','德','俄','韩','以','奥','哥伦比亚','挪威','瑞典','马来西亚','土耳其','加','瑞士','印度','意'].indexOf(kw)>=0)d.nationality=kw;
-  }
-  if(id){var i=books.findIndex(function(b){return b.id===id});if(i>=0)books[i]=Object.assign({},books[i],d)}
-  else{books.push(Object.assign({id:nextId(),nationality:d.nationality||'',cover:coverData},d))}
-  try{saveBooks(books)}catch(e){
-    if(e.name==='QuotaExceededError'||(e+'').indexOf('quota')!==-1){alert('Storage full! Local storage limit reached. Try removing some cover images or clearing old data.')}
-    else{alert('Failed to save: '+e.message)}
-    return;
-  }
-  closeForm();renderAdminTable();
-}
-function clearCovers(){
-  if(!confirm('Clear all uploaded cover images? This will free storage space. Book data and comments will not be affected.'))return;
-  books.forEach(function(b){b.cover=''});
-  saveBooks(books);
-  renderAdminTable();
-  alert('All covers cleared. Storage freed.');
-}
-function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(function(b){return b.id!==id});saveBooks(books);renderAdminTable()}
-function resetData(){if(!confirm('Reset to default data? This will overwrite all your edits.'))return;books=JSON.parse(JSON.stringify(DEFAULT_BOOKS));saveBooks(books);renderAdminTable();alert('Reset complete.')}
-document.getElementById('admin-search').addEventListener('input',function(e){renderAdminTable(e.target.value.toLowerCase())});
-document.querySelectorAll('.view-btn').forEach(function(btn){btn.addEventListener('click',function(){
-  document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');
-  var isS=this.dataset.view==='shelf';
-  document.getElementById('shelf-view').classList.toggle('active',isS);
-  document.getElementById('timeline-view').classList.toggle('active',!isS);
-})});
-renderBookshelf();renderTimeline();
-</script>
+document.querySelectorAll('.view-btn').forEach(function(btn) { btn.addEventListener('click', function() { document.querySelectorAll('.view-btn').forEach(function(b) { b.classList.remove('active'); }); this.classList.add('active'); var isS = this.dataset.view === 'shelf'; document.getElementById('shelf-view').classList.toggle('active', isS); document.getElementById('timeline-view').classList.toggle('active', !isS); }); });
+loadBooks();</script>
 </body>
 </html>
