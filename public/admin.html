@@ -1,0 +1,264 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Admin</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#faf8f5;color:#1a1a1a}
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:#fff;border-radius:10px;padding:40px;width:100%;max-width:400px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.login-box h1{font-size:24px;margin-bottom:16px}
+.login-box input{width:100%;padding:10px;border:1px solid #e8e5e0;border-radius:6px;font-size:14px;margin-bottom:12px}
+.login-box input:focus{outline:none;border-color:#b8451a}
+.login-box button{width:100%;padding:10px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer}
+.login-box button:hover{background:#444}
+.header{padding:0 24px;border-bottom:1px solid #e8e5e0;background:#fff}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.main{max-width:1280px;margin:0 auto;padding:24px}
+.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.toolbar input{padding:8px 14px;border:1px solid #e8e5e0;border-radius:6px;font-size:13px;min-width:200px}
+.toolbar input:focus{outline:none;border-color:#b8451a}
+.btn{padding:8px 18px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid #e8e5e0;background:#fff;color:#1a1a1a;white-space:nowrap}
+.btn:hover{background:#f5f5f5}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#444}
+.btn-danger{color:#b8451a;border-color:#b8451a}
+.btn-danger:hover{background:#fdf2ed}
+.table-wrap{overflow-x:auto;border:1px solid #e8e5e0;border-radius:10px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #e8e5e0}
+th{font-weight:600;font-size:12px;color:#9e9e9e;text-transform:uppercase;background:#faf8f5}
+tr:hover td{background:#fafaf7}
+.actions{display:flex;gap:6px}
+.actions button{padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid #e8e5e0;cursor:pointer;background:#fff}
+.actions button:hover{background:#f5f5f5}
+.progress-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.progress-dot.done{background:#4a9e4a}
+.progress-dot.wip{background:#d4a843}
+.form-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s}
+.form-overlay.open{opacity:1;pointer-events:auto}
+.form-modal{background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.1);width:100%;max-width:580px;max-height:85vh;overflow-y:auto;padding:32px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:#9e9e9e;margin-bottom:4px}
+.form-group input,.form-group textarea{width:100%;padding:9px 12px;border:1px solid #e8e5e0;border-radius:6px;font-size:13px;resize:vertical}
+.form-group input:focus,.form-group textarea:focus{outline:none;border-color:#b8451a}
+.form-group textarea{min-height:60px}
+.cover-preview-wrap{width:80px;height:120px;border-radius:3px 6px 6px 3px;overflow:hidden;margin-top:6px;border:1px solid #e8e5e0;background:#eee;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9e9e9e}
+.cover-preview-wrap img{width:100%;height:100%;object-fit:cover}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+</style></head><body>
+
+<div class="login-screen" id="login-screen">
+<div class="login-box">
+<h1>Admin Login</h1>
+<p id="hint" style="font-size:13px;color:#666;margin-bottom:16px">Enter password</p>
+<input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+<button id="login-btn" onclick="login()">Login</button>
+</div></div>
+
+<div id="admin-screen" style="display:none">
+<div class="header"><div class="header-inner"><div style="font-size:18px;font-weight:700">Bookshelf Admin</div><a href="/" class="btn">View Bookshelf</a></div></div>
+<div class="main">
+<div class="toolbar">
+<input type="text" id="search" placeholder="Search..." oninput="search(this.value)">
+<button class="btn btn-primary" onclick="openAddForm()">+ Add Book</button>
+<button class="btn btn-danger" onclick="clearAllCovers()">Clear Covers</button>
+<span id="count" style="font-size:13px;color:#9e9e9e;margin-left:8px"></span>
+</div>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Date</th><th>Progress</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table></div>
+</div></div>
+
+<div class="form-overlay" id="form-overlay"><div class="form-modal" id="form-modal"></div></div>
+
+<script>
+var auth = '';
+
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function apiHeaders() { return { 'Content-Type': 'application/json', 'X-Admin-Password': auth }; }
+
+async function login() {
+  var pwd = document.getElementById('login-password').value;
+  var hint = document.getElementById('hint');
+  var btn = document.getElementById('login-btn');
+  if (!pwd) { hint.textContent = 'Enter password'; return; }
+  hint.textContent = 'Verifying...';
+  btn.disabled = true;
+  try {
+    var r = await fetch('/api/books?p=' + encodeURIComponent(pwd));
+    if (r.status === 401) { hint.textContent = 'Wrong password'; btn.disabled = false; return; }
+    auth = pwd;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    loadBooks();
+  } catch(e) { hint.textContent = 'Error: ' + e.message; btn.disabled = false; }
+}
+
+async function loadBooks() {
+  try {
+    var r = await fetch('/api/books');
+    if (!r.ok) { alert('Failed to load'); return; }
+    var books = await r.json();
+    document.getElementById('tbody').innerHTML = books.map(function(b) {
+      return '<tr><td>' + b.id + '</td><td>' + esc(b.title) + '</td><td>' + esc(b.author) + '</td><td>' + (b.year||'') + '</td><td><span class="progress-dot ' + (b.progress>=100?'done':'wip') + '"></span>' + b.progress + '%</td><td class="actions"><button onclick="editBook(' + b.id + ')">Edit</button><button class="btn-del" onclick="delBook(' + b.id + ')" style="color:#b8451a">Del</button></td></tr>';
+    }).join('');
+    document.getElementById('count').textContent = books.length + ' books';
+  } catch(e) { alert('Load failed: ' + e.message); }
+}
+
+function search(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#tbody tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+  });
+}
+
+function openAddForm() { editForm(null); }
+
+async function editBook(id) {
+  try {
+    var r = await fetch('/api/books');
+    var books = await r.json();
+    var b = books.find(function(x) { return x.id === id; });
+    if (b) editForm(b);
+  } catch(e) { alert('Failed to load'); }
+}
+
+function editForm(book) {
+  var ie = !!book;
+  var id = ie ? book.id : 0;
+  var fm = document.getElementById('form-modal');
+  fm.innerHTML =
+    '<h3>' + (ie ? 'Edit Book' : 'Add Book') + '</h3>' +
+    '<div class="form-group"><label>Title *</label><input id="t" value="' + (ie?esc(book.title):'') + '"></div>' +
+    '<div class="form-group"><label>Author</label><input id="a" value="' + (ie?esc(book.author):'') + '"></div>' +
+    '<div class="form-group"><label>Date</label><input id="y" value="' + (ie?book.year:'') + '" placeholder="2025-06"></div>' +
+    '<div class="form-group"><label>Cover</label><input type="file" id="cf" accept="image/*" onchange="preview()"><div class="cover-preview-wrap" id="preview">' + (ie&&book.cover_url?'<img src="'+esc(book.cover_url)+'">':'<span>None</span>') + '</div></div>' +
+    '<div class="form-group"><label>Color</label><input id="c" value="' + (ie?book.color:'#4a2c1a') + '" type="color" style="width:60px;height:36px"></div>' +
+    '<div class="form-group"><label>Progress</label><input id="p" type="number" min="0" max="100" value="' + (ie?book.progress:100) + '"></div>' +
+    '<div class="form-group"><label>Keywords</label><input id="k" value="' + (ie?(book.keywords||[]).join(','):'') + '" placeholder="Comma separated"></div>' +
+    '<div class="form-group"><label>Summary</label><textarea id="s" rows="3">' + (ie?esc(book.summary):'') + '</textarea></div>' +
+    '<div class="form-group"><label>Reflection</label><textarea id="r" rows="3">' + (ie?esc(book.reflection):'') + '</textarea></div>' +
+    '<div class="form-group"><label>Related Books</label><div id="conn-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div><input type="text" id="conn-search" placeholder="Search title to connect..." oninput="searchConns(this.value)" style="font-size:12px"><div id="conn-results" style="max-height:150px;overflow-y:auto;font-size:12px"></div></div>' +
+    '<input type="hidden" id="currentBookId" value="0"><div class="form-actions"><button class="btn" onclick="closeForm()">Cancel</button><button class="btn btn-primary" id="saveBtn" onclick="save(' + id + ')">Save</button></div>';
+  document.getElementById('form-overlay').classList.add('open');
+  if (ie) loadConns(id);
+}
+
+function closeForm() { 
+  document.getElementById('form-overlay').classList.remove('open');
+  document.getElementById('conn-results').innerHTML = '';
+  document.getElementById('conn-list').innerHTML = '';
+  document.getElementById('conn-search').value = '';
+}
+
+async function loadConns(id) {
+  if (!id) return;
+  try {
+    var r = await fetch('/api/connections?book_id=' + id);
+    if (!r.ok) return;
+    var list = await r.json();
+    var el = document.getElementById('conn-list');
+    el.innerHTML = list.map(function(c) {
+      var b = c.book;
+      return '<span style="background:#f0ece6;border-radius:4px;padding:3px 8px;font-size:12px;display:inline-flex;align-items:center;gap:4px">' + esc(b.title) + '<span onclick="rmConn(' + c.conn_id + ')" style="cursor:pointer;color:#b8451a;font-weight:bold">x</span></span>';
+    }).join('');
+  } catch(e) {}
+}
+
+async function addConn(id, targetId) {
+  if (id == targetId) return;
+  var r = await fetch('/api/connections', { method:'POST', headers: apiHeaders(), body: JSON.stringify({book_a_id:id, book_b_id:targetId}) });
+  if (r.ok) { loadConns(id); document.getElementById('conn-search').value = ''; document.getElementById('conn-results').innerHTML = ''; }
+  else { alert('Failed: ' + (await r.text())); }
+}
+
+async function rmConn(connId) {
+  var r = await fetch('/api/connections', { method:'DELETE', headers: apiHeaders(), body: JSON.stringify({id:connId}) });
+  if (r.ok) { var id = parseInt(document.getElementById('currentBookId').value || 0); if (id) loadConns(id); }
+}
+
+async function searchConns(q) {
+  q = q.trim();
+  var id = parseInt(document.getElementById('currentBookId').value || 0);
+  if (!q || !id) { document.getElementById('conn-results').innerHTML = ''; return; }
+  try {
+    var r = await fetch('/api/books');
+    var all = await r.json();
+    var already = await (await fetch('/api/connections?book_id=' + id)).json();
+    var taken = {}; already.forEach(function(c) { taken[c.book.id] = true; });
+    taken[id] = true;
+    var matches = all.filter(function(b) {
+      return !taken[b.id] && b.title.toLowerCase().indexOf(q) >= 0;
+    }).slice(0, 10);
+    document.getElementById('conn-results').innerHTML = matches.map(function(b) {
+      return '<div onclick="addConn(' + id + ',' + b.id + ')" style="padding:6px 8px;cursor:pointer;border-bottom:1px solid #e8e5e0">' + esc(b.title) + ' - ' + esc(b.author) + '</div>';
+    }).join('');
+  } catch(e) {}
+}
+
+function preview() {
+  var f = document.getElementById('cf');
+  var p = document.getElementById('preview');
+  if (f.files && f.files[0]) {
+    var r = new FileReader();
+    r.onload = function(e) { p.innerHTML = '<img src="' + e.target.result + '">'; };
+    r.readAsDataURL(f.files[0]);
+  }
+}
+
+function closeForm() { document.getElementById('form-overlay').classList.remove('open'); }
+
+async function save(id) {
+  var t = document.getElementById('t').value.trim();
+  if (!t) return alert('Title required');
+  var d = { title:t, author:document.getElementById('a').value.trim(), year:document.getElementById('y').value.trim(), color:document.getElementById('c').value, progress:parseInt(document.getElementById('p').value)||100, keywords:document.getElementById('k').value.split(',').map(function(x){return x.trim()}).filter(Boolean), summary:document.getElementById('s').value.trim(), reflection:document.getElementById('r').value.trim() };
+
+  var fi = document.getElementById('cf');
+  if (fi && fi.files && fi.files[0]) {
+    var btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Processing...';
+    var img = new Image();
+    img.onload = function() {
+      if (img.width > 400) {
+        var c = document.createElement('canvas');
+        c.width = 400; c.height = img.height * 400 / img.width;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        d.cover_data = c.toDataURL('image/jpeg', 0.8);
+      } else {
+        var fr = new FileReader();
+        fr.onload = function(ev) { d.cover_data = ev.target.result; doSave(id, d); };
+        fr.readAsDataURL(fi.files[0]);
+        btn.disabled = false; btn.textContent = 'Save';
+        return;
+      }
+      btn.disabled = false; btn.textContent = 'Save';
+      doSave(id, d);
+    };
+    img.src = URL.createObjectURL(fi.files[0]);
+  } else {
+    doSave(id, d);
+  }
+}
+
+async function doSave(id, d) {
+  if (id) d.id = id;
+  var r = await fetch('/api/books', { method: id?'PUT':'POST', headers: apiHeaders(), body: JSON.stringify(d) });
+  if (r.ok) { closeForm(); loadBooks(); }
+  else { alert('Save failed: ' + (await r.text())); }
+}
+
+async function delBook(id) {
+  if (!confirm('Delete?')) return;
+  var r = await fetch('/api/books', { method:'DELETE', headers: apiHeaders(), body: JSON.stringify({id:id}) });
+  if (r.ok) loadBooks(); else alert('Delete failed');
+}
+
+async function clearAllCovers() {
+  if (!confirm('Clear all covers?')) return;
+  var r = await fetch('/api/books');
+  var books = await r.json();
+  for (var b of books) {
+    if (b.cover_url) {
+      await fetch('/api/books', { method:'PUT', headers: apiHeaders(), body: JSON.stringify({id:b.id,cover_url:''}) });
+    }
+  }
+  loadBooks();
+}
+</script></body></html>
