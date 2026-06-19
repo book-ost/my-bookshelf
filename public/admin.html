@@ -136,7 +136,7 @@ function editForm(book) {
     '<div class="form-group"><label>Summary</label><textarea id="s" rows="3">' + (ie?esc(book.summary):'') + '</textarea></div>' +
     '<div class="form-group"><label>Reflection</label><textarea id="r" rows="3">' + (ie?esc(book.reflection):'') + '</textarea></div>' +
     '<div class="form-group"><label>Related Books</label><div id="conn-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div><input type="text" id="conn-search" placeholder="Search title to connect..." oninput="searchConns(this.value)" style="font-size:12px"><div id="conn-results" style="max-height:150px;overflow-y:auto;font-size:12px"></div></div>' +
-    '<input type="hidden" id="currentBookId" value="0"><div class="form-actions"><button class="btn" onclick="closeForm()">Cancel</button><button class="btn btn-primary" id="saveBtn" onclick="save(' + id + ')">Save</button></div>';
+    '<div class="form-actions"><button class="btn" onclick="closeForm()">Cancel</button><button class="btn btn-primary" id="saveBtn" onclick="save(' + id + ')">Save</button></div>';
   document.getElementById('form-overlay').classList.add('open');
   if (ie) loadConns(id);
 }
